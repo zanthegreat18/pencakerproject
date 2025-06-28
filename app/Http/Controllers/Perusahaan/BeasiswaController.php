@@ -6,16 +6,15 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Beasiswa;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
-
 
 class BeasiswaController extends Controller
-
 {
-
     public function index()
     {
-        $beasiswas = Beasiswa::where('user_id', Auth::id())->orderBy('created_at', 'desc')->get();
+        $beasiswas = Beasiswa::where('user_id', Auth::id())
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         return view('perusahaan.beasiswa.index', compact('beasiswas'));
     }
 
@@ -27,20 +26,31 @@ class BeasiswaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'judul' => 'required|string|max:255',
-            'deskripsi' => 'required|string',
-            'syarat' => 'nullable|string',
-            'deadline' => 'required|date',
+            'judul'           => 'required|string|max:255',
+            'deskripsi'       => 'required|string',
+            'syarat'          => 'nullable|string',
+            'deadline'        => 'required|date',
+            'min_pendidikan'  => 'required|string|max:255',
+            'foto'            => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        Beasiswa::create([
-            'judul' => $request->judul,
-            'deskripsi' => $request->deskripsi,
-            'syarat' => $request->syarat,
-            'deadline' => $request->deadline,
-            'user_id' => auth()->id(), // Penting: supaya tahu siapa yang buat
-        ]);
+        $data = [
+            'judul'          => $request->judul,
+            'deskripsi'      => $request->deskripsi,
+            'syarat'         => $request->syarat,
+            'deadline'       => $request->deadline,
+            'min_pendidikan' => $request->min_pendidikan,
+            'email'          => Auth::user()->email,
+            'no_telp'        => Auth::user()->no_telp ?? '-',
+            'user_id'        => Auth::id(),
+        ];
 
-        return redirect()->route('perusahaan.beasiswa.index')->with('success', 'Beasiswa berhasil ditambahkan.');
+        if ($request->hasFile('foto')) {
+            $data['foto'] = $request->file('foto')->store('beasiswa_foto', 'public');
+        }
+
+        Beasiswa::create($data);
+
+        return redirect()->route('perusahaan.beasiswa.index')->with('success', 'Beasiswa berhasil ditambahkan!');
     }
 }

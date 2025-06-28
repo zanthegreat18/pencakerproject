@@ -17,7 +17,7 @@ class LamaranController extends Controller
             ->exists();
 
         if ($alreadyApplied) {
-            return redirect()->route('dashboard') // atau route pencaker lo
+            return redirect()->route('pencaker.dashboard', $vacancy->id)
                 ->with('error', 'Lo udah pernah apply ke lowongan ini, tunggu hasilnya ya!');
         }
 
